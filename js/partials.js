@@ -87,7 +87,7 @@ function siteFooter() {
           <ul>
             <li>Kabarnet, Baringo County, Kenya</li>
             <li>+254 793 708 295</li>
-            <li>+58 789 350 30</li>
+            <li>+1 587 893 5030</li>
             <li>hello@vonarieducation.com</li>
           </ul>
         </div>
