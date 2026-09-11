@@ -26,7 +26,7 @@
     <div class="admin-card">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px;">
         <h3 style="font-size: 1.1rem;">Recent inquiries</h3>
-        <a href="inquiries.html" style="font-size:0.85rem; font-weight:600; color:var(--navy);">View all →</a>
+        <a href="/admin/inquiries.html" style="font-size:0.85rem; font-weight:600; color:var(--navy);">View all →</a>
       </div>
       <table class="data-table">
         <thead>
@@ -92,7 +92,7 @@
 
   document.getElementById('recent-table-body').innerHTML = submissions.length
     ? submissions.slice(0, 6).map(s => `
-    <tr onclick="window.location.href='inquiries.html'">
+    <tr onclick="window.location.href='/admin/inquiries.html'">
       <td><strong>${s.name}</strong></td>
       <td>${s.type}</td>
       <td>${s.service}</td>

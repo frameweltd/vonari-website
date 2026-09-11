@@ -1,7 +1,7 @@
 async function adminGuard() {
   const { data: { session } } = await supabaseClient.auth.getSession();
   if (!session) {
-    window.location.href = 'index.html';
+    window.location.href = '/admin/index.html';
   }
   return session;
 }
@@ -13,7 +13,7 @@ function adminSidebar(active) {
     ['content.html', 'Content', '<path d="M4 19.5V6a2 2 0 0 1 2-2h12a1 1 0 0 1 1 1v13"/><path d="M6.5 22H18a2 2 0 0 0 2-2v-1H6.5a2.5 2.5 0 0 0 0 5"/>'],
   ];
   const links = items.map(([href, label, icon]) =>
-    `<li><a href="${href}"${active === href ? ' class="active"' : ''}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">${icon}</svg>${label}</a></li>`
+    `<li><a href="/admin/${href}"${active === href ? ' class="active"' : ''}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">${icon}</svg>${label}</a></li>`
   ).join('');
 
   return `
@@ -32,7 +32,7 @@ function adminSidebar(active) {
     </div>
     <ul class="admin-nav">${links}</ul>
     <div class="admin-logout">
-      <a href="../index.html" style="display:block; font-size:0.85rem; margin-bottom:10px; color: rgba(247,244,236,0.6);">&larr; View public site</a>
+      <a href="/index.html" style="display:block; font-size:0.85rem; margin-bottom:10px; color: rgba(247,244,236,0.6);">&larr; View public site</a>
       <button id="admin-logout-btn" class="btn btn-outline btn-block" style="font-size:0.85rem; padding:10px;">Log Out</button>
     </div>
   </aside>`;
@@ -44,7 +44,7 @@ document.addEventListener('DOMContentLoaded', function () {
     mount.outerHTML = adminSidebar(mount.dataset.active);
     document.getElementById('admin-logout-btn').addEventListener('click', async function () {
       await supabaseClient.auth.signOut();
-      window.location.href = 'index.html';
+      window.location.href = '/admin/index.html';
     });
   }
 });

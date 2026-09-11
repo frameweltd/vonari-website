@@ -61,12 +61,12 @@ document.getElementById('login-form').addEventListener('submit', async function 
     return;
   }
 
-  window.location.href = 'dashboard.html';
+  window.location.href = '/admin/dashboard.html';
 });
 
 // If already logged in, skip straight to dashboard
 supabaseClient.auth.getSession().then(({ data: { session } }) => {
-  if (session) window.location.href = 'dashboard.html';
+  if (session) window.location.href = '/admin/dashboard.html';
 });
 </script>
 </body>
