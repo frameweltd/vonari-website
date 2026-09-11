@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Content Management — Vonari Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/style.css">
+</head>
+<body class="admin-body">
+<div class="admin-shell">
+  <div id="admin-sidebar" data-active="content.html"></div>
+
+  <main class="admin-main">
+    <div class="admin-topbar">
+      <h1>Content Management</h1>
+    </div>
+
+    <div class="admin-card" style="margin-bottom: 24px;">
+      <h3 style="margin-bottom: 6px; font-size:1.1rem;">Homepage hero</h3>
+      <p style="font-size:0.88rem; margin-bottom:18px;">This text appears at the top of your homepage.</p>
+      <div class="field">
+        <label for="hero-tagline">Hero tagline</label>
+        <input type="text" id="hero-tagline">
+      </div>
+    </div>
+
+    <div class="admin-card" style="margin-bottom: 24px;">
+      <h3 style="margin-bottom: 6px; font-size:1.1rem;">Stats / trust bar</h3>
+      <p style="font-size:0.88rem; margin-bottom:18px;">These numbers appear beneath your homepage hero.</p>
+      <div id="stats-editor"></div>
+    </div>
+
+    <div class="admin-card" style="margin-bottom: 24px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+        <h3 style="font-size:1.1rem;">Why Choose Us points</h3>
+        <button class="btn btn-outline" id="add-why" style="padding:8px 14px; font-size:0.82rem; color:var(--navy); border-color: rgba(11,30,61,0.3);">+ Add point</button>
+      </div>
+      <p style="font-size:0.88rem; margin-bottom:18px;">Shown on your homepage under "Guidance. Transparency. Care."</p>
+      <div id="why-editor"></div>
+    </div>
+
+    <div class="admin-card" style="margin-bottom: 24px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+        <h3 style="font-size:1.1rem;">Testimonials</h3>
+        <button class="btn btn-outline" id="add-testi" style="padding:8px 14px; font-size:0.82rem; color:var(--navy); border-color: rgba(11,30,61,0.3);">+ Add testimonial</button>
+      </div>
+      <p style="font-size:0.88rem; margin-bottom:18px;">Shown on your homepage. Add real student quotes as they come in.</p>
+      <div id="testi-editor"></div>
+    </div>
+
+    <button class="btn btn-gold" id="save-all" style="padding: 14px 32px;">Save All Changes</button>
+    <span id="save-confirm" style="display:none; margin-left:16px; color: #3B7A34; font-weight:600; font-size:0.9rem;">✓ Saved</span>
+
+    <div class="demo-note" style="margin-top: 32px; max-width: 640px;">
+      <strong>Preview note:</strong> in this demo, edits save to your browser only. In the real deployment, this page writes to your live database, so changes appear on the public site immediately for every visitor.
+    </div>
+  </main>
+</div>
+
+<script src="../js/store.js"></script>
+<script src="../js/admin-partials.js"></script>
+<script src="../js/site.js"></script>
+<script>
+adminGuard();
+
+let content = VonariStore.getContent();
+
+function renderStats() {
+  document.getElementById('stats-editor').innerHTML = content.stats.map((s, i) => `
+    <div class="form-row" style="margin-bottom:14px;">
+      <div class="field" style="margin-bottom:0;">
+        <label>Number</label>
+        <input type="text" data-stat-num="${i}" value="${s.number}">
+      </div>
+      <div class="field" style="margin-bottom:0;">
+        <label>Label</label>
+        <input type="text" data-stat-label="${i}" value="${s.label}">
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderWhy() {
+  document.getElementById('why-editor').innerHTML = content.whyChooseUs.map((w, i) => `
+    <div style="border:1px solid var(--line); border-radius:3px; padding:16px; margin-bottom:14px;">
+      <div class="field" style="margin-bottom:10px;">
+        <label>Title</label>
+        <input type="text" data-why-title="${i}" value="${w.title}">
+      </div>
+      <div class="field" style="margin-bottom:8px;">
+        <label>Description</label>
+        <textarea data-why-body="${i}" style="min-height:70px;">${w.body}</textarea>
+      </div>
+      <button class="btn btn-outline" data-remove-why="${i}" style="padding:6px 12px; font-size:0.78rem; color:var(--maroon); border-color:rgba(122,31,31,0.3);">Remove</button>
+    </div>
+  `).join('');
+  document.querySelectorAll('[data-remove-why]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      content.whyChooseUs.splice(+btn.dataset.removeWhy, 1);
+      renderWhy();
+    });
+  });
+}
+
+function renderTesti() {
+  document.getElementById('testi-editor').innerHTML = content.testimonials.map((t, i) => `
+    <div style="border:1px solid var(--line); border-radius:3px; padding:16px; margin-bottom:14px;">
+      <div class="field" style="margin-bottom:8px;">
+        <label>Quote</label>
+        <textarea data-testi-quote="${i}" style="min-height:60px;">${t.quote}</textarea>
+      </div>
+      <div class="form-row" style="margin-bottom:8px;">
+        <div class="field" style="margin-bottom:0;">
+          <label>Student name</label>
+          <input type="text" data-testi-name="${i}" value="${t.name}">
+        </div>
+        <div class="field" style="margin-bottom:0;">
+          <label>Placement</label>
+          <input type="text" data-testi-where="${i}" value="${t.where}">
+        </div>
+      </div>
+      <button class="btn btn-outline" data-remove-testi="${i}" style="padding:6px 12px; font-size:0.78rem; color:var(--maroon); border-color:rgba(122,31,31,0.3);">Remove</button>
+    </div>
+  `).join('');
+  document.querySelectorAll('[data-remove-testi]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      content.testimonials.splice(+btn.dataset.removeTesti, 1);
+      renderTesti();
+    });
+  });
+}
+
+document.getElementById('hero-tagline').value = content.heroTagline;
+renderStats();
+renderWhy();
+renderTesti();
+
+document.getElementById('add-why').addEventListener('click', () => {
+  content.whyChooseUs.push({ title: 'New point title', body: 'Describe this point...' });
+  renderWhy();
+});
+document.getElementById('add-testi').addEventListener('click', () => {
+  content.testimonials.push({ quote: 'New testimonial quote...', name: 'Student Name', where: 'Placed in...' });
+  renderTesti();
+});
+
+document.getElementById('save-all').addEventListener('click', () => {
+  content.heroTagline = document.getElementById('hero-tagline').value;
+  content.stats.forEach((s, i) => {
+    s.number = document.querySelector(`[data-stat-num="${i}"]`).value;
+    s.label = document.querySelector(`[data-stat-label="${i}"]`).value;
+  });
+  content.whyChooseUs.forEach((w, i) => {
+    const t = document.querySelector(`[data-why-title="${i}"]`);
+    const b = document.querySelector(`[data-why-body="${i}"]`);
+    if (t) w.title = t.value;
+    if (b) w.body = b.value;
+  });
+  content.testimonials.forEach((t, i) => {
+    const q = document.querySelector(`[data-testi-quote="${i}"]`);
+    const n = document.querySelector(`[data-testi-name="${i}"]`);
+    const w = document.querySelector(`[data-testi-where="${i}"]`);
+    if (q) t.quote = q.value;
+    if (n) t.name = n.value;
+    if (w) t.where = w.value;
+  });
+
+  VonariStore.setContent(content);
+  const confirm = document.getElementById('save-confirm');
+  confirm.style.display = 'inline';
+  setTimeout(() => confirm.style.display = 'none', 2500);
+});
+</script>
+</body>
+</html>

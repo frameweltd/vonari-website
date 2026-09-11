@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Login — Vonari Educational Agency</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/style.css">
+</head>
+<body class="admin-body">
+<div class="login-shell">
+  <div class="login-card">
+    <div class="brand" style="justify-content:center;">
+      <img src="../images/logo-full-web.jpg" alt="Vonari Educational Agency" style="width: 100%; max-width: 280px; border-radius: 3px;">
+    </div>
+    <h1>Staff Login</h1>
+    <p class="sub">Vonari Educational Agency admin dashboard</p>
+
+    <form id="login-form" novalidate>
+      <div class="field">
+        <label for="login-email">Email address</label>
+        <input type="email" id="login-email" name="email" required value="admin@vonarieducation.com">
+        <span class="field-error">Please enter your email.</span>
+      </div>
+      <div class="field">
+        <label for="login-password">Password</label>
+        <input type="password" id="login-password" name="password" required value="vonari2026">
+        <span class="field-error">Please enter your password.</span>
+      </div>
+      <div id="login-error" style="display:none; color: var(--maroon); font-size: 0.86rem; margin-bottom: 16px;">
+        Incorrect email or password. Please try again.
+      </div>
+      <button type="submit" class="btn btn-gold btn-block">Log In</button>
+    </form>
+
+    <div class="demo-note">
+      <strong>Preview note:</strong> this login is a front-end demo only. In the real deployment, this form authenticates against a real database with securely hashed passwords and server-side sessions — see the deployment guide for setup steps. For now, any email/password combination will log you in so you can explore the dashboard.
+    </div>
+  </div>
+</div>
+
+<script src="../js/store.js"></script>
+<script src="../js/site.js"></script>
+<script>
+document.getElementById('login-form').addEventListener('submit', function (e) {
+  e.preventDefault();
+  const form = e.target;
+  if (!validateForm(form)) return;
+  VonariStore.login();
+  window.location.href = 'dashboard.html';
+});
+</script>
+</body>
+</html>

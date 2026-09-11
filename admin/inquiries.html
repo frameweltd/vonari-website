@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Inquiries — Vonari Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/style.css">
+</head>
+<body class="admin-body">
+<div class="admin-shell">
+  <div id="admin-sidebar" data-active="inquiries.html"></div>
+
+  <main class="admin-main">
+    <div class="admin-topbar">
+      <h1>Inquiries &amp; Applications</h1>
+    </div>
+
+    <div class="admin-toolbar">
+      <input type="search" id="search-input" placeholder="Search by name or email...">
+      <div class="filters">
+        <select id="filter-status">
+          <option value="">All statuses</option>
+          <option>New</option>
+          <option>Contacted</option>
+          <option>In Progress</option>
+          <option>Completed</option>
+          <option>Closed</option>
+        </select>
+        <select id="filter-service">
+          <option value="">All services</option>
+          <option>University Selection</option>
+          <option>Visa Application</option>
+          <option>Recruitment &amp; Placement</option>
+          <option>Scholarship Guidance</option>
+          <option>Airport Pick Up</option>
+          <option>General Inquiry</option>
+        </select>
+        <select id="filter-country">
+          <option value="">All countries</option>
+          <option>USA</option>
+          <option>Canada</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="admin-card">
+      <table class="data-table">
+        <thead>
+          <tr><th>Name</th><th>Type</th><th>Service</th><th>Country</th><th>Status</th><th>Date</th><th></th></tr>
+        </thead>
+        <tbody id="table-body"></tbody>
+      </table>
+      <p id="empty-state" style="display:none; text-align:center; padding: 30px; color: var(--ink-soft);">No inquiries match your filters.</p>
+    </div>
+  </main>
+</div>
+
+<!-- Detail modal -->
+<div class="modal-backdrop" id="modal-backdrop">
+  <div class="modal">
+    <div class="modal-head">
+      <div>
+        <span class="badge" id="modal-id"></span>
+        <h3 style="margin-top:10px;" id="modal-name"></h3>
+      </div>
+      <button class="modal-close" id="modal-close" aria-label="Close">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="6" y1="6" x2="18" y2="18"/><line x1="6" y1="18" x2="18" y2="6"/></svg>
+      </button>
+    </div>
+
+    <div id="modal-details"></div>
+
+    <div class="field" style="margin-top:20px;">
+      <label for="modal-status">Update status</label>
+      <select id="modal-status">
+        <option>New</option>
+        <option>Contacted</option>
+        <option>In Progress</option>
+        <option>Completed</option>
+        <option>Closed</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>Internal notes</label>
+      <ul class="notes-list" id="modal-notes"></ul>
+      <textarea id="modal-new-note" placeholder="Add a note for the team..." style="min-height: 70px;"></textarea>
+    </div>
+
+    <div style="display:flex; gap:12px; margin-top: 10px;">
+      <button class="btn btn-gold" id="modal-save" style="flex:1;">Save Changes</button>
+      <button class="btn btn-outline" id="modal-delete" style="color: var(--maroon); border-color: rgba(122,31,31,0.4);">Delete</button>
+    </div>
+  </div>
+</div>
+
+<script src="../js/store.js"></script>
+<script src="../js/admin-partials.js"></script>
+<script src="../js/site.js"></script>
+<script>
+adminGuard();
+
+let activeId = null;
+
+function renderTable() {
+  const search = document.getElementById('search-input').value.toLowerCase();
+  const status = document.getElementById('filter-status').value;
+  const service = document.getElementById('filter-service').value;
+  const country = document.getElementById('filter-country').value;
+
+  let rows = VonariStore.getSubmissions();
+  if (search) rows = rows.filter(s => s.name.toLowerCase().includes(search) || s.email.toLowerCase().includes(search));
+  if (status) rows = rows.filter(s => s.status === status);
+  if (service) rows = rows.filter(s => s.service === service);
+  if (country) rows = rows.filter(s => s.country === country);
+
+  const tbody = document.getElementById('table-body');
+  document.getElementById('empty-state').style.display = rows.length ? 'none' : 'block';
+
+  tbody.innerHTML = rows.map(s => `
+    <tr data-id="${s.id}">
+      <td><strong>${s.name}</strong><br><span style="color:var(--ink-soft); font-size:0.82rem;">${s.email}</span></td>
+      <td>${s.type}</td>
+      <td>${s.service}</td>
+      <td>${s.country}</td>
+      <td><span class="status-pill status-${s.status.replace(' ', '')}">${s.status}</span></td>
+      <td>${new Date(s.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</td>
+      <td style="color:var(--navy); font-weight:600; font-size:0.85rem;">View →</td>
+    </tr>
+  `).join('');
+
+  tbody.querySelectorAll('tr').forEach(tr => {
+    tr.addEventListener('click', () => openModal(tr.dataset.id));
+  });
+}
+
+function openModal(id) {
+  activeId = id;
+  const s = VonariStore.getSubmissions().find(x => x.id === id);
+  if (!s) return;
+
+  document.getElementById('modal-id').textContent = s.id;
+  document.getElementById('modal-name').textContent = s.name;
+  document.getElementById('modal-status').value = s.status;
+
+  const rows = [
+    ['Type', s.type], ['Email', s.email], ['Phone', s.phone], ['Country', s.country],
+    ['Service', s.service], ['Preferred contact', s.contactMethod],
+    ['Submitted', new Date(s.date).toLocaleString('en-GB')], ['Message', s.message || '—']
+  ];
+  document.getElementById('modal-details').innerHTML = rows.map(([k, v]) =>
+    `<div class="detail-row"><span class="k">${k}</span><span class="v">${v}</span></div>`
+  ).join('');
+
+  document.getElementById('modal-notes').innerHTML = (s.notes || []).map(n => `<li>${n}</li>`).join('') || '<li style="background:transparent; padding-left:0; color:var(--ink-soft);">No notes yet.</li>';
+  document.getElementById('modal-new-note').value = '';
+
+  document.getElementById('modal-backdrop').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('modal-backdrop').classList.remove('open');
+  activeId = null;
+}
+
+document.getElementById('modal-close').addEventListener('click', closeModal);
+document.getElementById('modal-backdrop').addEventListener('click', (e) => { if (e.target.id === 'modal-backdrop') closeModal(); });
+
+document.getElementById('modal-save').addEventListener('click', function () {
+  if (!activeId) return;
+  const s = VonariStore.getSubmissions().find(x => x.id === activeId);
+  const newNote = document.getElementById('modal-new-note').value.trim();
+  const notes = (s.notes || []).slice();
+  if (newNote) notes.push(newNote);
+  VonariStore.updateSubmission(activeId, { status: document.getElementById('modal-status').value, notes });
+  closeModal();
+  renderTable();
+});
+
+document.getElementById('modal-delete').addEventListener('click', function () {
+  if (!activeId) return;
+  if (confirm('Delete this inquiry? This cannot be undone.')) {
+    VonariStore.deleteSubmission(activeId);
+    closeModal();
+    renderTable();
+  }
+});
+
+['search-input', 'filter-status', 'filter-service', 'filter-country'].forEach(id => {
+  document.getElementById(id).addEventListener('input', renderTable);
+});
+
+document.addEventListener('DOMContentLoaded', renderTable);
+</script>
+</body>
+</html>

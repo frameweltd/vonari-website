@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Start Your Application — Vonari Educational Agency</title>
+<meta name="description" content="Begin your application with Vonari Educational Agency. Tell us about your goals and we'll guide you from here.">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<a href="#main" class="skip-link">Skip to main content</a>
+<div id="site-header" data-active="apply.html"></div>
+
+<main id="main">
+  <section class="page-hero">
+    <div class="container">
+      <div class="breadcrumb"><a href="index.html">Home</a> / Apply</div>
+      <span class="kicker">Get Started</span>
+      <h1>Start your application.</h1>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container" style="max-width: 720px;">
+
+      <div class="form-success" id="apply-success">
+        Thank you — your application has been received. Our team will reach out via your preferred contact method within one business day.
+      </div>
+
+      <div id="apply-form-wrap">
+        <div class="step-tracker">
+          <div class="step active" data-step="1"></div>
+          <div class="step" data-step="2"></div>
+          <div class="step" data-step="3"></div>
+          <div class="step" data-step="4"></div>
+        </div>
+        <div class="step-labels">
+          <span data-label-for="1">Your Details</span>
+          <span data-label-for="2">Your Goals</span>
+          <span data-label-for="3">Preferences</span>
+          <span data-label-for="4">Review</span>
+        </div>
+
+        <form id="apply-form" class="form-card" novalidate>
+
+          <!-- Step 1: personal details -->
+          <div class="form-step active" data-step="1">
+            <h3 style="margin-bottom: 20px;">Your details</h3>
+            <div class="form-row">
+              <div class="field">
+                <label for="ap-name">Full name <span class="req">*</span></label>
+                <input type="text" id="ap-name" name="name" required>
+                <span class="field-error">Please enter your full name.</span>
+              </div>
+              <div class="field">
+                <label for="ap-email">Email address <span class="req">*</span></label>
+                <input type="email" id="ap-email" name="email" required>
+                <span class="field-error">Please enter a valid email address.</span>
+              </div>
+            </div>
+            <div class="field">
+              <label for="ap-phone">Phone number <span class="req">*</span></label>
+              <input type="tel" id="ap-phone" name="phone" data-phone required>
+              <span class="field-error">Please enter a valid phone number.</span>
+            </div>
+          </div>
+
+          <!-- Step 2: goals -->
+          <div class="form-step" data-step="2">
+            <h3 style="margin-bottom: 20px;">Your goals</h3>
+            <div class="field">
+              <label for="ap-country">Country of interest <span class="req">*</span></label>
+              <select id="ap-country" name="country" required>
+                <option value="">Select a country</option>
+                <option>USA</option>
+                <option>Canada</option>
+                <option>Not sure yet</option>
+              </select>
+              <span class="field-error">Please select a country.</span>
+            </div>
+            <div class="field">
+              <label for="ap-service">Service interested in <span class="req">*</span></label>
+              <select id="ap-service" name="service" required>
+                <option value="">Select a service</option>
+                <option>University Selection</option>
+                <option>Visa Application</option>
+                <option>Recruitment &amp; Placement</option>
+                <option>Scholarship Guidance</option>
+                <option>Airport Pick Up</option>
+                <option>Not sure yet</option>
+              </select>
+              <span class="field-error">Please select a service.</span>
+            </div>
+          </div>
+
+          <!-- Step 3: preferences -->
+          <div class="form-step" data-step="3">
+            <h3 style="margin-bottom: 20px;">Preferences &amp; notes</h3>
+            <div class="field">
+              <label for="ap-contact">Preferred contact method <span class="req">*</span></label>
+              <select id="ap-contact" name="contactMethod" required>
+                <option value="">Select a method</option>
+                <option>Phone Call</option>
+                <option>WhatsApp</option>
+                <option>Email</option>
+              </select>
+              <span class="field-error">Please select a contact method.</span>
+            </div>
+            <div class="field">
+              <label for="ap-message">Message / notes</label>
+              <textarea id="ap-message" name="message" placeholder="Anything you'd like us to know before we call you?"></textarea>
+              <p class="form-note">Optional — but the more detail you share, the better we can prepare for your consultation.</p>
+            </div>
+          </div>
+
+          <!-- Step 4: review -->
+          <div class="form-step" data-step="4">
+            <h3 style="margin-bottom: 20px;">Review your application</h3>
+            <div class="review-block" id="review-block"></div>
+            <p class="form-note">By submitting, you agree to be contacted by Vonari Educational Agency regarding your inquiry.</p>
+          </div>
+
+          <div class="step-actions">
+            <button type="button" class="btn btn-outline" id="apply-back" style="color: var(--navy); border-color: rgba(11,30,61,0.3); visibility: hidden;">Back</button>
+            <button type="button" class="btn btn-gold" id="apply-next">Continue</button>
+          </div>
+        </form>
+      </div>
+
+    </div>
+  </section>
+</main>
+
+<div id="site-footer"></div>
+<script src="js/store.js"></script>
+<script src="js/partials.js"></script>
+<script src="js/site.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const form = document.getElementById('apply-form');
+  wireLiveValidation(form);
+  let current = 1;
+  const total = 4;
+
+  function showStep(n) {
+    form.querySelectorAll('.form-step').forEach(el => el.classList.toggle('active', +el.dataset.step === n));
+    document.querySelectorAll('.step-tracker .step').forEach(el => {
+      const s = +el.dataset.step;
+      el.classList.toggle('active', s === n);
+      el.classList.toggle('done', s < n);
+    });
+    document.querySelectorAll('.step-labels span').forEach(el => {
+      el.classList.toggle('current', +el.dataset.labelFor === n);
+    });
+    document.getElementById('apply-back').style.visibility = n === 1 ? 'hidden' : 'visible';
+    document.getElementById('apply-next').textContent = n === total ? 'Submit Application' : 'Continue';
+
+    if (n === total) buildReview();
+  }
+
+  function buildReview() {
+    const rows = [
+      ['Full name', form.name.value],
+      ['Email', form.email.value],
+      ['Phone', form.phone.value],
+      ['Country of interest', form.country.value],
+      ['Service', form.service.value],
+      ['Preferred contact method', form.contactMethod.value],
+      ['Message', form.message.value || '—']
+    ];
+    document.getElementById('review-block').innerHTML = rows.map(([k, v]) =>
+      `<div class="review-row"><span class="k">${k}</span><span class="v">${v}</span></div>`
+    ).join('');
+  }
+
+  document.getElementById('apply-next').addEventListener('click', function () {
+    const stepEl = form.querySelector(`.form-step[data-step="${current}"]`);
+    if (current < total) {
+      if (!validateStep(stepEl)) return;
+      current++;
+      showStep(current);
+    } else {
+      // final submit
+      VonariStore.addSubmission({
+        type: 'Application',
+        name: form.name.value,
+        email: form.email.value,
+        phone: form.phone.value,
+        country: form.country.value,
+        service: form.service.value,
+        contactMethod: form.contactMethod.value,
+        message: form.message.value
+      });
+      document.getElementById('apply-form-wrap').style.display = 'none';
+      document.getElementById('apply-success').classList.add('show');
+    }
+  });
+
+  document.getElementById('apply-back').addEventListener('click', function () {
+    if (current > 1) { current--; showStep(current); }
+  });
+
+  showStep(current);
+});
+</script>
+</body>
+</html>
