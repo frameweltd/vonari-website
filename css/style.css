@@ -476,6 +476,20 @@ p { margin: 0 0 1rem; color: var(--ink-soft); max-width: 62ch; }
 .stat-box .l { font-size: 0.82rem; color: var(--ink-soft); margin-top: 2px; }
 @media (max-width: 900px) { .stat-grid { grid-template-columns: 1fr 1fr; } }
 
+@media (max-width: 760px) {
+  .admin-shell { display: flex; flex-direction: column; min-height: 0; }
+  .admin-sidebar { padding: 16px 0; }
+  .admin-sidebar .brand { padding: 0 16px 14px; margin-bottom: 8px; }
+  .admin-nav { display: flex; flex: none; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .admin-nav a { flex: none; padding: 10px 16px; border-left: none; border-bottom: 3px solid transparent; white-space: nowrap; }
+  .admin-nav a.active { border-color: var(--gold); }
+  .admin-logout { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 16px; border-top: none; }
+  .admin-logout a { margin-bottom: 0 !important; }
+  .admin-logout .btn { width: auto; }
+  .admin-main { padding: 20px 16px; }
+  .stat-grid { grid-template-columns: 1fr; gap: 14px; }
+}
+
 .data-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
 .data-table th { text-align: left; padding: 12px 14px; color: var(--ink-soft); font-weight: 600; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.03em; border-bottom: 2px solid var(--line); white-space: nowrap; }
 .data-table td { padding: 14px; border-bottom: 1px solid var(--line); vertical-align: middle; }
