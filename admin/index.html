@@ -19,12 +19,12 @@
     <form id="login-form" novalidate>
       <div class="field">
         <label for="login-email">Email address</label>
-        <input type="email" id="login-email" name="email" required value="admin@vonarieducation.com">
+        <input type="email" id="login-email" name="email" required>
         <span class="field-error">Please enter your email.</span>
       </div>
       <div class="field">
         <label for="login-password">Password</label>
-        <input type="password" id="login-password" name="password" required value="vonari2026">
+        <input type="password" id="login-password" name="password" required>
         <span class="field-error">Please enter your password.</span>
       </div>
       <div id="login-error" style="display:none; color: var(--maroon); font-size: 0.86rem; margin-bottom: 16px;">
@@ -32,22 +32,41 @@
       </div>
       <button type="submit" class="btn btn-gold btn-block">Log In</button>
     </form>
-
-    <div class="demo-note">
-      <strong>Preview note:</strong> this login is a front-end demo only. In the real deployment, this form authenticates against a real database with securely hashed passwords and server-side sessions — see the deployment guide for setup steps. For now, any email/password combination will log you in so you can explore the dashboard.
-    </div>
   </div>
 </div>
 
-<script src="../js/store.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/supabase-config.js"></script>
 <script src="../js/site.js"></script>
 <script>
-document.getElementById('login-form').addEventListener('submit', function (e) {
+document.getElementById('login-form').addEventListener('submit', async function (e) {
   e.preventDefault();
   const form = e.target;
   if (!validateForm(form)) return;
-  VonariStore.login();
+
+  const submitBtn = form.querySelector('button[type="submit"]');
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Logging in...';
+  document.getElementById('login-error').style.display = 'none';
+
+  const { data, error } = await supabaseClient.auth.signInWithPassword({
+    email: form.email.value,
+    password: form.password.value
+  });
+
+  if (error) {
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Log In';
+    document.getElementById('login-error').style.display = 'block';
+    return;
+  }
+
   window.location.href = 'dashboard.html';
+});
+
+// If already logged in, skip straight to dashboard
+supabaseClient.auth.getSession().then(({ data: { session } }) => {
+  if (session) window.location.href = 'dashboard.html';
 });
 </script>
 </body>

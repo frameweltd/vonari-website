@@ -133,6 +133,8 @@
 </main>
 
 <div id="site-footer"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase-config.js"></script>
 <script src="js/store.js"></script>
 <script src="js/partials.js"></script>
 <script src="js/site.js"></script>
@@ -174,24 +176,36 @@ document.addEventListener('DOMContentLoaded', function () {
     ).join('');
   }
 
-  document.getElementById('apply-next').addEventListener('click', function () {
+  document.getElementById('apply-next').addEventListener('click', async function () {
     const stepEl = form.querySelector(`.form-step[data-step="${current}"]`);
     if (current < total) {
       if (!validateStep(stepEl)) return;
       current++;
       showStep(current);
     } else {
-      // final submit
-      VonariStore.addSubmission({
+      const nextBtn = this;
+      nextBtn.disabled = true;
+      nextBtn.textContent = 'Submitting...';
+
+      const { error } = await supabaseClient.from('submissions').insert({
         type: 'Application',
         name: form.name.value,
         email: form.email.value,
         phone: form.phone.value,
         country: form.country.value,
         service: form.service.value,
-        contactMethod: form.contactMethod.value,
+        contact_method: form.contactMethod.value,
         message: form.message.value
       });
+
+      if (error) {
+        nextBtn.disabled = false;
+        nextBtn.textContent = 'Submit Application';
+        alert('Something went wrong submitting your application. Please try again or contact us directly.');
+        console.error(error);
+        return;
+      }
+
       document.getElementById('apply-form-wrap').style.display = 'none';
       document.getElementById('apply-success').classList.add('show');
     }

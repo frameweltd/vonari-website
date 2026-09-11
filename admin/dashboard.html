@@ -38,20 +38,33 @@
   </main>
 </div>
 
-<script src="../js/store.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/supabase-config.js"></script>
 <script src="../js/admin-partials.js"></script>
 <script src="../js/site.js"></script>
 <script>
-adminGuard();
+(async function () {
+  const session = await adminGuard();
+  if (!session) return;
 
-document.addEventListener('DOMContentLoaded', function () {
-  const submissions = VonariStore.getSubmissions();
-  const now = new Date('2026-09-08T00:00:00Z');
+  const { data: submissions, error } = await supabaseClient
+    .from('submissions')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error(error);
+    document.querySelector('.admin-main').insertAdjacentHTML('afterbegin',
+      '<div class="admin-card" style="border-color:var(--maroon); margin-bottom:24px;">Could not load submissions. Please refresh, or check your connection.</div>');
+    return;
+  }
+
+  const now = new Date();
   const weekAgo = new Date(now); weekAgo.setDate(now.getDate() - 7);
   const monthAgo = new Date(now); monthAgo.setDate(now.getDate() - 30);
 
-  const thisWeek = submissions.filter(s => new Date(s.date) >= weekAgo).length;
-  const thisMonth = submissions.filter(s => new Date(s.date) >= monthAgo).length;
+  const thisWeek = submissions.filter(s => new Date(s.created_at) >= weekAgo).length;
+  const thisMonth = submissions.filter(s => new Date(s.created_at) >= monthAgo).length;
   const newCount = submissions.filter(s => s.status === 'New').length;
   const inProgress = submissions.filter(s => s.status === 'In Progress').length;
 
@@ -65,7 +78,8 @@ document.addEventListener('DOMContentLoaded', function () {
   const byService = {};
   submissions.forEach(s => { byService[s.service] = (byService[s.service] || 0) + 1; });
   const maxCount = Math.max(...Object.values(byService), 1);
-  document.getElementById('service-breakdown').innerHTML = Object.entries(byService).map(([service, count]) => `
+  document.getElementById('service-breakdown').innerHTML = Object.entries(byService).length
+    ? Object.entries(byService).map(([service, count]) => `
     <div style="display:flex; align-items:center; gap:14px; margin-bottom:12px;">
       <span style="width:180px; font-size:0.88rem; color:var(--ink-soft); flex-shrink:0;">${service}</span>
       <div style="flex:1; background:var(--ivory); border-radius:3px; overflow:hidden; height:10px;">
@@ -73,18 +87,21 @@ document.addEventListener('DOMContentLoaded', function () {
       </div>
       <span style="width:24px; text-align:right; font-weight:700; color:var(--navy); font-size:0.88rem;">${count}</span>
     </div>
-  `).join('');
+  `).join('')
+    : '<p style="font-size:0.88rem; color:var(--ink-soft);">No submissions yet.</p>';
 
-  document.getElementById('recent-table-body').innerHTML = submissions.slice(0, 6).map(s => `
+  document.getElementById('recent-table-body').innerHTML = submissions.length
+    ? submissions.slice(0, 6).map(s => `
     <tr onclick="window.location.href='inquiries.html'">
       <td><strong>${s.name}</strong></td>
       <td>${s.type}</td>
       <td>${s.service}</td>
       <td><span class="status-pill status-${s.status.replace(' ', '')}">${s.status}</span></td>
-      <td>${new Date(s.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}</td>
+      <td>${new Date(s.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}</td>
     </tr>
-  `).join('');
-});
+  `).join('')
+    : '<tr><td colspan="5" style="text-align:center; color:var(--ink-soft); padding:24px;">No inquiries yet.</td></tr>';
+})();
 </script>
 </body>
 </html>

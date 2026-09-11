@@ -1,7 +1,9 @@
-function adminGuard() {
-  if (!VonariStore.isLoggedIn()) {
+async function adminGuard() {
+  const { data: { session } } = await supabaseClient.auth.getSession();
+  if (!session) {
     window.location.href = 'index.html';
   }
+  return session;
 }
 
 function adminSidebar(active) {
@@ -40,8 +42,8 @@ document.addEventListener('DOMContentLoaded', function () {
   const mount = document.getElementById('admin-sidebar');
   if (mount) {
     mount.outerHTML = adminSidebar(mount.dataset.active);
-    document.getElementById('admin-logout-btn').addEventListener('click', function () {
-      VonariStore.logout();
+    document.getElementById('admin-logout-btn').addEventListener('click', async function () {
+      await supabaseClient.auth.signOut();
       window.location.href = 'index.html';
     });
   }

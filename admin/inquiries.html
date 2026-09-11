@@ -95,13 +95,29 @@
   </div>
 </div>
 
-<script src="../js/store.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/supabase-config.js"></script>
 <script src="../js/admin-partials.js"></script>
 <script src="../js/site.js"></script>
 <script>
-adminGuard();
-
 let activeId = null;
+let allSubmissions = [];
+
+async function loadSubmissions() {
+  const { data, error } = await supabaseClient
+    .from('submissions')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error(error);
+    document.getElementById('table-body').innerHTML =
+      '<tr><td colspan="7" style="text-align:center; color:var(--maroon); padding:24px;">Could not load inquiries. Please refresh.</td></tr>';
+    return;
+  }
+  allSubmissions = data;
+  renderTable();
+}
 
 function renderTable() {
   const search = document.getElementById('search-input').value.toLowerCase();
@@ -109,7 +125,7 @@ function renderTable() {
   const service = document.getElementById('filter-service').value;
   const country = document.getElementById('filter-country').value;
 
-  let rows = VonariStore.getSubmissions();
+  let rows = allSubmissions;
   if (search) rows = rows.filter(s => s.name.toLowerCase().includes(search) || s.email.toLowerCase().includes(search));
   if (status) rows = rows.filter(s => s.status === status);
   if (service) rows = rows.filter(s => s.service === service);
@@ -125,7 +141,7 @@ function renderTable() {
       <td>${s.service}</td>
       <td>${s.country}</td>
       <td><span class="status-pill status-${s.status.replace(' ', '')}">${s.status}</span></td>
-      <td>${new Date(s.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</td>
+      <td>${new Date(s.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</td>
       <td style="color:var(--navy); font-weight:600; font-size:0.85rem;">View →</td>
     </tr>
   `).join('');
@@ -137,17 +153,17 @@ function renderTable() {
 
 function openModal(id) {
   activeId = id;
-  const s = VonariStore.getSubmissions().find(x => x.id === id);
+  const s = allSubmissions.find(x => x.id === id);
   if (!s) return;
 
-  document.getElementById('modal-id').textContent = s.id;
+  document.getElementById('modal-id').textContent = s.id.slice(0, 8);
   document.getElementById('modal-name').textContent = s.name;
   document.getElementById('modal-status').value = s.status;
 
   const rows = [
     ['Type', s.type], ['Email', s.email], ['Phone', s.phone], ['Country', s.country],
-    ['Service', s.service], ['Preferred contact', s.contactMethod],
-    ['Submitted', new Date(s.date).toLocaleString('en-GB')], ['Message', s.message || '—']
+    ['Service', s.service], ['Preferred contact', s.contact_method],
+    ['Submitted', new Date(s.created_at).toLocaleString('en-GB')], ['Message', s.message || '—']
   ];
   document.getElementById('modal-details').innerHTML = rows.map(([k, v]) =>
     `<div class="detail-row"><span class="k">${k}</span><span class="v">${v}</span></div>`
@@ -167,23 +183,46 @@ function closeModal() {
 document.getElementById('modal-close').addEventListener('click', closeModal);
 document.getElementById('modal-backdrop').addEventListener('click', (e) => { if (e.target.id === 'modal-backdrop') closeModal(); });
 
-document.getElementById('modal-save').addEventListener('click', function () {
+document.getElementById('modal-save').addEventListener('click', async function () {
   if (!activeId) return;
-  const s = VonariStore.getSubmissions().find(x => x.id === activeId);
+  const s = allSubmissions.find(x => x.id === activeId);
   const newNote = document.getElementById('modal-new-note').value.trim();
   const notes = (s.notes || []).slice();
   if (newNote) notes.push(newNote);
-  VonariStore.updateSubmission(activeId, { status: document.getElementById('modal-status').value, notes });
+
+  const saveBtn = this;
+  saveBtn.disabled = true;
+  saveBtn.textContent = 'Saving...';
+
+  const { error } = await supabaseClient
+    .from('submissions')
+    .update({ status: document.getElementById('modal-status').value, notes })
+    .eq('id', activeId);
+
+  saveBtn.disabled = false;
+  saveBtn.textContent = 'Save Changes';
+
+  if (error) {
+    console.error(error);
+    alert('Could not save changes. Please try again.');
+    return;
+  }
+
   closeModal();
-  renderTable();
+  loadSubmissions();
 });
 
-document.getElementById('modal-delete').addEventListener('click', function () {
+document.getElementById('modal-delete').addEventListener('click', async function () {
   if (!activeId) return;
   if (confirm('Delete this inquiry? This cannot be undone.')) {
-    VonariStore.deleteSubmission(activeId);
+    const { error } = await supabaseClient.from('submissions').delete().eq('id', activeId);
+    if (error) {
+      console.error(error);
+      alert('Could not delete this inquiry. Please try again.');
+      return;
+    }
     closeModal();
-    renderTable();
+    loadSubmissions();
   }
 });
 
@@ -191,7 +230,11 @@ document.getElementById('modal-delete').addEventListener('click', function () {
   document.getElementById(id).addEventListener('input', renderTable);
 });
 
-document.addEventListener('DOMContentLoaded', renderTable);
+(async function () {
+  const session = await adminGuard();
+  if (!session) return;
+  loadSubmissions();
+})();
 </script>
 </body>
 </html>

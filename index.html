@@ -196,6 +196,8 @@
 
 <div id="site-footer"></div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase-config.js"></script>
 <script src="js/store.js"></script>
 <script src="js/partials.js"></script>
 <script src="js/site.js"></script>
@@ -223,13 +225,26 @@ document.addEventListener('DOMContentLoaded', function () {
 
   const form = document.getElementById('home-contact-form');
   wireLiveValidation(form);
-  form.addEventListener('submit', function (e) {
+  form.addEventListener('submit', async function (e) {
     e.preventDefault();
     if (!validateForm(form)) return;
-    VonariStore.addSubmission({
+    const submitBtn = form.querySelector('button[type="submit"]');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Sending...';
+
+    const { error } = await supabaseClient.from('submissions').insert({
       type: 'Contact', name: form.name.value, email: form.email.value, phone: form.phone.value,
-      country: '—', service: 'General Inquiry', contactMethod: 'Email', message: form.message.value
+      country: '—', service: 'General Inquiry', contact_method: 'Email', message: form.message.value
     });
+
+    if (error) {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Send Message';
+      alert('Something went wrong sending your message. Please try again or contact us directly.');
+      console.error(error);
+      return;
+    }
+
     document.getElementById('home-form-success').classList.add('show');
     form.reset();
     form.style.display = 'none';
